@@ -1,21 +1,27 @@
 import adapter from '@sveltejs/adapter-node';
-// import adapter from '@sveltejs/adapter-static';
-
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 /**
- * port 3000 is for taleem website
- * port 4000 is for admin app
- * port 5000 is API (sqlite) 
- * 
-*/
+ * Port map:
+ * 3000 → taleem website
+ * 4000 → admin app
+ * 5000 → API (sqlite)
+ * 8000 → local-first slide editor (this project)
+ */
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	kit: {
-		adapter: adapter({ out: 'build', precompress: false, env: { host: '0.0.0.0', port: 3000 } })
+		adapter: adapter({
+			out: 'build',
+			precompress: false,
+			env: {
+				host: '0.0.0.0',
+				port: 8000          // ← changed from 3000 to 8000
+			}
+		})
 	},
-preprocess: vitePreprocess()	
+	preprocess: vitePreprocess()
 };
 
 export default config;
