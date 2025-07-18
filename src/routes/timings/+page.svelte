@@ -39,7 +39,7 @@
     item.showAt = parseFloat(currentTime.toFixed(2));
     deck = { ...deck };
   }
-
+  let soundExists = false;
   onMount(async () => {
     tick();
 
@@ -54,6 +54,7 @@
       const head = await fetch(`/sounds/${filename}.opus`, { method: 'HEAD' });
       if (head.ok) {
         soundUrl = `/sounds/${filename}.opus`;
+        soundExists = true;
       }
     } catch {
       // ignore, fallback stays
@@ -148,14 +149,25 @@
   }
 </style>
 
+<h1 style="width: 100%; border: 2px solid #facc15; border-radius: 0.375rem; text-align: center; font-size: 1.2rem; padding:6px; margin:2px; background-color: #0f4502">
+  💡 Timing Page
+</h1>
+
+
 {#if error}
   <p class="error">Error: {error}</p>
 {:else if !deckLoaded}
   <p class="centered">Loading deck…</p>
 {:else}
-  <div class="audio-panel">
-    <audio bind:this={audio} src={soundUrl} controls class="w-full"></audio>
-  </div>
+    {#if soundExists}
+      <div class="audio-panel">
+        <audio bind:this={audio} src={soundUrl} controls class="w-full"></audio>
+      </div>
+    {:else}
+    <h1 style="width: 100%; border: 2px solid #facc15; border-radius: 0.375rem; text-align: center; font-size: 1.2rem; padding:6px; margin:2px; background-color: #0f4502">
+      💡 Sound not found
+    </h1>
+    {/if}  
 
   <div class="time-display">
     Current Time: {currentTime.toFixed(2)}s
