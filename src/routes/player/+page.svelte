@@ -3,47 +3,26 @@
   import { page }      from '$app/stores';
   import { SveltePlayer } from '../../lib/Player';
 
-  let deck       = null;        // slide array for the player
-  let background = null;        // background config   
+  export let data;
+  const { deck, background,error } = data;
+
+  // let deck       = null;        // slide array for the player
+  // let background = null;        // background config   
   let notFound   = false;
   let soundUrl   = '/sounds/music.opus';
   let mounted    = false;
 
-  /**
-   * Fetch a pre‑built deck JSON by name.
-   * Expects the file to live at: /data/content/<name>.json
-   */
-  async function loadDeckJson (name) {
-    try {
-      const res = await fetch(`/data/content/${name}.json`);
-      if (!res.ok) {
-        notFound = true;
-        return;
-      }
-
-      const json = await res.json();
-      deck       = json.deck;                     // core deck array
-      background = json.background ?? {           // fallback background
-        backgroundColor: '#ffffff',
-        backgroundImage: '/images/defaultBg.png',
-        backgroundImageOpacity: 0.8
-      };
-    } catch (err) {
-      console.error('Deck fetch error:', err);
-      notFound = true;
-    }
-  }
 
   // Run once after the component mounts
   onMount(() => {
+    // debugger;
+    console.log("deck",deck);
     const params   = new URLSearchParams($page.url.search);
     const filename = params.get('filename');
 
     if (!filename) {
       notFound = true;
     } else {
-      loadDeckJson(filename);
-
       // Optionally look for a matching .opus file
       const opusName = `${filename}.opus`;
       fetch(`/sounds/${opusName}`, { method: 'HEAD' })

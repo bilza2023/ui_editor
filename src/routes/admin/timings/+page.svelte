@@ -37,7 +37,11 @@
 
   // Set showAt for a slide item
   function setShowAt(item: any) {
-    item.showAt = parseFloat(currentTime.toFixed(2));
+    item.showAt = parseFloat(currentTime.toFixed(1));
+    deck = { ...deck };
+  }
+  function setShowAtZero(item: any) {
+    item.showAt = 0;
     deck = { ...deck };
   }
   async function saveTimings(): Promise<boolean> {
@@ -176,6 +180,22 @@
         </button>
       </div>
 
+   
+
+      {#each slide.data as item}
+        <div class="item">
+          • {item.name || item.type}: "{item.content}"<br />
+          showAt:
+          <input type="number" bind:value={item.showAt} step="0.0" />
+          <button class=" set-show-zero" on:click={() => setShowAtZero(item)}>
+            ShowAt = 0
+          </button>
+          <button class="set-show" on:click={() => setShowAt(item)}>
+            ShowAt = Now
+          </button>
+        </div>
+      {/each}
+
       <div style="display: flex; align-items: center; margin-top: 0.5rem;">
         <label>
           Start:
@@ -190,16 +210,7 @@
         </button>
       </div>
 
-      {#each slide.data as item}
-        <div class="item">
-          • {item.name || item.type}: "{item.content}"<br />
-          showAt:
-          <input type="number" bind:value={item.showAt} step="0.01" />
-          <button class="set-show" on:click={() => setShowAt(item)}>
-            Set = Now
-          </button>
-        </div>
-      {/each}
+
     </div>
   {/each}
 {/if}
@@ -268,6 +279,9 @@
   }
   button.set-show {
     background-color: #3b82f6; /* blue-500 */
+  }
+  button.set-show-zero {
+    background-color: #11038f; /* blue-500 */
   }
   .centered {
     text-align: center;
