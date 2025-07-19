@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
+  import Nav from '../../lib/Nav.svelte';
 
   let deck: any = null;
   let deckLoaded = false;
@@ -39,6 +40,56 @@
     item.showAt = parseFloat(currentTime.toFixed(2));
     deck = { ...deck };
   }
+  async function saveTimings(): Promise<boolean> {
+    const filename = $page.url.searchParams.get('filename') ?? '';
+    const res = await fetch(`/timings?filename=${encodeURIComponent(filename)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(deck)
+    });
+
+    if (!res.ok) {
+      // try JSON, fallback to text
+      let errMsg: string;
+      try {
+        const data = await res.json();
+        errMsg = data.error ?? JSON.stringify(data);
+      } catch {
+        errMsg = await res.text();
+      }
+      alert(`❌ Save failed: ${errMsg}`);
+      return false;
+    }
+
+    // on success we expect JSON { success: true }
+    alert('✅ Save successful');
+    return true;
+  }
+
+  async function saveAndDownload() {
+    const ok = await saveTimings();
+    if (ok) {
+      // download only if save succeeded
+      downloadTimings();
+    }
+  }
+
+  function downloadTimings() {
+    const filename = $page.url.searchParams.get('filename') ?? 'deck';
+    const blob = new Blob([JSON.stringify(deck, null, 2)], {
+      type: 'application/json'
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${filename}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+
   let soundExists = false;
   onMount(async () => {
     tick();
@@ -74,6 +125,86 @@
     }
   });
 </script>
+
+<Nav/>
+<h1 style="width: 100%; border: 2px solid #facc15; border-radius: 0.375rem; text-align: center; font-size: 1.2rem; padding:6px; margin:2px; background-color: #0f4502">
+  💡 Timing Page
+</h1>
+
+<div class="timing-actions" style="margin: 1rem 0;">
+  <button on:click={saveTimings} class="btn">
+    Save
+  </button>
+  <button
+    on:click={saveAndDownload}
+    class="btn"
+    style="margin-left: 0.5rem;"
+  >
+    Save and Download
+  </button>
+</div>
+
+{#if error}
+  <p class="error">Error: {error}</p>
+{:else if !deckLoaded}
+  <p class="centered">Loading deck…</p>
+{:else}
+    {#if soundExists}
+      <div class="audio-panel">
+        <audio bind:this={audio} src={soundUrl} controls class="w-full"></audio>
+      </div>
+    {:else}
+    <h1 style="width: 100%; border: 2px solid #facc15; border-radius: 0.375rem; text-align: center; font-size: 1.2rem; padding:6px; margin:2px; background-color: #0f4502">
+      💡 Sound not found
+    </h1>
+    {/if}  
+
+  <div class="time-display">
+    Current Time: {currentTime.toFixed(2)}s
+  </div>
+
+  {#each deck.deck as slide, i}
+    <div class="slide">
+      <div class="slide-header">
+        <strong>Slide {i + 1} — {slide.type}</strong>
+        <button
+          class="set-start"
+          on:click={() => setSlideStart(i)}
+          disabled={i === 0}
+        >
+          Set Start = Now
+        </button>
+      </div>
+
+      <div style="display: flex; align-items: center; margin-top: 0.5rem;">
+        <label>
+          Start:
+          <input type="number" bind:value={slide.start} step="0.01" />
+        </label>
+        <label style="margin-left: 1rem;">
+          End:
+          <input type="number" bind:value={slide.end} step="0.01" />
+        </label>
+        <button class="set-end" on:click={() => setSlideEnd(i)}>
+          Set End = Now
+        </button>
+      </div>
+
+      {#each slide.data as item}
+        <div class="item">
+          • {item.name || item.type}: "{item.content}"<br />
+          showAt:
+          <input type="number" bind:value={item.showAt} step="0.01" />
+          <button class="set-show" on:click={() => setShowAt(item)}>
+            Set = Now
+          </button>
+        </div>
+      {/each}
+    </div>
+  {/each}
+{/if}
+
+
 
 <style>
   :global(body) {
@@ -148,68 +279,3 @@
     margin-top: 1rem;
   }
 </style>
-
-<h1 style="width: 100%; border: 2px solid #facc15; border-radius: 0.375rem; text-align: center; font-size: 1.2rem; padding:6px; margin:2px; background-color: #0f4502">
-  💡 Timing Page
-</h1>
-
-
-{#if error}
-  <p class="error">Error: {error}</p>
-{:else if !deckLoaded}
-  <p class="centered">Loading deck…</p>
-{:else}
-    {#if soundExists}
-      <div class="audio-panel">
-        <audio bind:this={audio} src={soundUrl} controls class="w-full"></audio>
-      </div>
-    {:else}
-    <h1 style="width: 100%; border: 2px solid #facc15; border-radius: 0.375rem; text-align: center; font-size: 1.2rem; padding:6px; margin:2px; background-color: #0f4502">
-      💡 Sound not found
-    </h1>
-    {/if}  
-
-  <div class="time-display">
-    Current Time: {currentTime.toFixed(2)}s
-  </div>
-
-  {#each deck.deck as slide, i}
-    <div class="slide">
-      <div class="slide-header">
-        <strong>Slide {i + 1} — {slide.type}</strong>
-        <button
-          class="set-start"
-          on:click={() => setSlideStart(i)}
-          disabled={i === 0}
-        >
-          Set Start = Now
-        </button>
-      </div>
-
-      <div style="display: flex; align-items: center; margin-top: 0.5rem;">
-        <label>
-          Start:
-          <input type="number" bind:value={slide.start} step="0.01" />
-        </label>
-        <label style="margin-left: 1rem;">
-          End:
-          <input type="number" bind:value={slide.end} step="0.01" />
-        </label>
-        <button class="set-end" on:click={() => setSlideEnd(i)}>
-          Set End = Now
-        </button>
-      </div>
-
-      {#each slide.data as item}
-        <div class="item">
-          • {item.name || item.type}: "{item.content}"<br />
-          showAt:
-          <input type="number" bind:value={item.showAt} step="0.01" />
-          <button class="set-show" on:click={() => setShowAt(item)}>
-            Set = Now
-          </button>
-        </div>
-      {/each}
-    </div>
-  {/each}
-{/if}

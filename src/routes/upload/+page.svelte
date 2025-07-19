@@ -1,4 +1,5 @@
 <script>
+  import Nav from "$lib/Nav.svelte";
   let files = [];
   let message = '';
 
@@ -25,6 +26,29 @@
     }
   }
 </script>
+
+<Nav />
+<h1>Bulk Deck Upload</h1>
+
+{#if message}
+  <div class="message {message.startsWith('✅') ? 'ok' : 'error'}">
+    {message}
+  </div>
+{/if}
+
+<div class="form-container">
+  <input
+    type="file"
+    multiple
+    accept=".json"
+    on:change="{e => files = Array.from(e.target.files)}"
+  />
+  <button on:click|preventDefault={upload}>
+    Upload {files.length > 0 ? `(${files.length})` : ''}
+  </button>
+</div>
+
+
 
 <style>
   :global(body) {
@@ -89,23 +113,3 @@
     background-color: #2b6cb0;
   }
 </style>
-
-<h1>Bulk Deck Upload</h1>
-
-{#if message}
-  <div class="message {message.startsWith('✅') ? 'ok' : 'error'}">
-    {message}
-  </div>
-{/if}
-
-<div class="form-container">
-  <input
-    type="file"
-    multiple
-    accept=".json"
-    on:change="{e => files = Array.from(e.target.files)}"
-  />
-  <button on:click|preventDefault={upload}>
-    Upload {files.length > 0 ? `(${files.length})` : ''}
-  </button>
-</div>
