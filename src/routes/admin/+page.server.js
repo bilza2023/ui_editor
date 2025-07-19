@@ -1,5 +1,5 @@
 // src/routes/decks/+page.server.js
-import * as deckService from '../lib/services/deckService';  // ← note the correct file name
+import * as deckService from '../../lib/services/deckService';  // ← note the correct file name
 
 
 /** @type {import('./$types').PageServerLoad} */

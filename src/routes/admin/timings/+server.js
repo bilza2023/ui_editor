@@ -1,7 +1,7 @@
 
 // src/routes/timings/+server.js
 import { json } from '@sveltejs/kit';
-import * as deckService from '../../lib/services/deckService';
+import * as deckService from '../../../lib/services/deckService';
 
 export async function GET({ url }) {
   const filename = url.searchParams.get('filename');
@@ -10,6 +10,7 @@ export async function GET({ url }) {
   }
 
   const record = await deckService.getDeckByFilename(filename);
+  console.log("record" , record);
   if (!record) {
     return json({ error: 'Deck not found' }, { status: 404 });
   }

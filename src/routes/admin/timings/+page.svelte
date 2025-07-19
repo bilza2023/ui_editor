@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
-  import Nav from '../../lib/Nav.svelte';
+  import Nav from '../../../lib/Nav.svelte';
 
   let deck: any = null;
   let deckLoaded = false;
@@ -42,7 +42,7 @@
   }
   async function saveTimings(): Promise<boolean> {
     const filename = $page.url.searchParams.get('filename') ?? '';
-    const res = await fetch(`/timings?filename=${encodeURIComponent(filename)}`, {
+    const res = await fetch(`/admin/timings?filename=${encodeURIComponent(filename)}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(deck)
@@ -113,7 +113,7 @@
 
     // fetch deck JSON from your server endpoint
     try {
-      const res = await fetch(`/timings?filename=${encodeURIComponent(filename)}`);
+      const res = await fetch(`/admin/timings?filename=${encodeURIComponent(filename)}`);
       if (!res.ok) {
         const body = await res.json();
         throw new Error(body.error || res.statusText);
